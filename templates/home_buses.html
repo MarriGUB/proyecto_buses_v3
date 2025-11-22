@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}Buses - Sistema de Gestión de Flota{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div></div>
+    <a href="{% url 'bus_create' %}" class="btn btn-create">
+        <i class="fas fa-plus me-2"></i>Crear Nuevo Bus
+    </a>
+</div>
+
+{% if buses %}
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Placa</th>
+                    <th>Modelo</th>
+                    <th>Año</th>
+                    <th>Capacidad</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for bus in buses %}
+                <tr>
+                    <td><strong>{{ bus.placa }}</strong></td>
+                    <td>{{ bus.modelo }}</td>
+                    <td>{{ bus.año_fabricacion }}</td>
+                    <td>{{ bus.capacidad_pasajeros }} pasajeros</td>
+                    <td>
+                        <span class="badge {% if bus.estado == 'activo' %}bg-success{% elif bus.estado == 'mantenimiento' %}bg-warning{% else %}bg-danger{% endif %}">
+                            {{ bus.get_estado_display }}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{% url 'bus_update' bus.pk %}" class="btn btn-sm btn-action btn-edit" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a href="{% url 'bus_delete' bus.pk %}" class="btn btn-sm btn-action btn-delete" title="Eliminar">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-bus fa-3x text-muted mb-3"></i>
+        <h4 class="text-muted">No hay buses registrados</h4>
+        <p class="text-muted">Comienza agregando tu primer bus a la flota</p>
+        <a href="{% url 'bus_create' %}" class="btn btn-create">
+            <i class="fas fa-plus me-2"></i>Crear Nuevo Bus
+        </a>
+    </div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block title %}Eliminar Lugar {{ lugar.nombre }} - Sistema de Gestión de Flota{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+                Eliminar Lugar
+            </h1>
+            <a href="{% url 'lugar_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>
+                Volver a la lista
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Confirmar Eliminación
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-danger">
+                    <h6><i class="fas fa-warning me-2"></i>¡Atención!</h6>
+                    <p class="mb-0">Esta acción no se puede deshacer. Al eliminar este lugar se perderán todos los datos asociados incluyendo historial de viajes.</p>
+                </div>
+                
+                <div class="mb-4">
+                    <h6>¿Está seguro que desea eliminar el siguiente lugar?</h6>
+                    
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>Nombre:</strong> {{ lugar.nombre }}<br>
+                                    <strong>Ciudad:</strong> {{ lugar.ciudad }}<br>
+                                    <strong>Provincia:</strong> {{ lugar.provincia|default:"No especificada" }}
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>País:</strong> {{ lugar.pais }}<br>
+                                    <strong>Coordenadas:</strong> 
+                                    {% if lugar.latitud and lugar.longitud %}
+                                        {{ lugar.latitud|floatformat:6 }}, {{ lugar.longitud|floatformat:6 }}
+                                    {% else %}
+                                        No disponibles
+                                    {% endif %}<br>
+                                    <strong>Registrado:</strong> {{ lugar.creado_en|date:"d/m/Y" }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <h6>Datos que se eliminarán:</h6>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-route text-warning me-2"></i> Historial de viajes como origen</li>
+                        <li><i class="fas fa-route text-danger me-2"></i> Historial de viajes como destino</li>
+                        <li><i class="fas fa-map-marker-alt text-info me-2"></i> Información de ubicación y coordenadas</li>
+                        <li><i class="fas fa-chart-bar text-primary me-2"></i> Estadísticas del lugar</li>
+                    </ul>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'lugar_detail' lugar.pk %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-2"></i>
+                            Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash me-2"></i>
+                            Sí, Eliminar Lugar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

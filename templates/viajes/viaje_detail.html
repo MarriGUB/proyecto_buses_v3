@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalle de Viaje - Sistema de Gestión de Flota{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Detalle del Viaje</h2>
+    <div>
+        <a href="{% url 'viajes:viaje_pasajeros' viaje.pk %}" class="btn btn-success me-2">
+            <i class="fas fa-users me-2"></i>Gestionar Pasajeros
+        </a>
+        <a href="{% url 'viajes:viaje_update' viaje.pk %}" class="btn btn-warning me-2">
+            <i class="fas fa-edit me-2"></i>Editar
+        </a>
+        <a href="{% url 'viajes:viaje_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Volver
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-header bg-primary text-white">
+                <i class="fas fa-info-circle me-2"></i>Información del Viaje
+            </div>
+            <div class="card-body">
+                <p>
+                    <strong>Estado:</strong>
+                    <span class="badge bg-{% if viaje.estado == 'programado' %}info{% elif viaje.estado == 'en_curso' %}warning{% elif viaje.estado == 'completado' %}success{% else %}danger{% endif %}">
+                        {{ viaje.get_estado_display }}
+                    </span>
+                </p>
+                <p><strong>Bus:</strong> {{ viaje.bus.placa }} - {{ viaje.bus.modelo }}</p>
+                <p><strong>Conductor:</strong> {{ viaje.conductor.apellido }}, {{ viaje.conductor.nombre }}</p>
+                <p><strong>Teléfono Conductor:</strong> {{ viaje.conductor.telefono }}</p>
+                <p><strong>Email Conductor:</strong> {{ viaje.conductor.email }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-header bg-primary text-white">
+                <i class="fas fa-map-marker-alt me-2"></i>Ruta
+            </div>
+            <div class="card-body">
+                <p>
+                    <strong>Origen:</strong><br>
+                    {{ viaje.lugar_origen.nombre }}, {{ viaje.lugar_origen.ciudad }}
+                    {% if viaje.lugar_origen.latitud %}
+                        <br><small class="text-muted">{{ viaje.lugar_origen.latitud }}, {{ viaje.lugar_origen.longitud }}</small>
+                    {% endif %}
+                </p>
+                <p>
+                    <strong>Destino:</strong><br>
+                    {{ viaje.lugar_destino.nombre }}, {{ viaje.lugar_destino.ciudad }}
+                    {% if viaje.lugar_destino.latitud %}
+                        <br><small class="text-muted">{{ viaje.lugar_destino.latitud }}, {{ viaje.lugar_destino.longitud }}</small>
+                    {% endif %}
+                </p>
+                {% if viaje.distancia_km %}
+                    <p><strong>Distancia:</strong> {{ viaje.distancia_km }} km</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-header bg-primary text-white">
+                <i class="fas fa-clock me-2"></i>Horarios
+            </div>
+            <div class="card-body">
+                <p><strong>Fecha de Salida:</strong> {{ viaje.fecha_salida|date:"d/m/Y H:i" }}</p>
+                <p><strong>Llegada Estimada:</strong> {{ viaje.fecha_llegada_estimada|date:"d/m/Y H:i" }}</p>
+                {% if viaje.fecha_llegada_real %}
+                    <p><strong>Llegada Real:</strong> {{ viaje.fecha_llegada_real|date:"d/m/Y H:i" }}</p>
+                {% else %}
+                    <p class="text-muted"><em>Llegada real: Pendiente</em></p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-header bg-primary text-white">
+                <i class="fas fa-users me-2"></i>Información Adicional
+            </div>
+            <div class="card-body">
+                <p><strong>Pasajeros Registrados:</strong> 
+                    <span class="badge bg-primary">{{ viaje.get_pasajeros_count }}</span> / {{ viaje.bus.capacidad_pasajeros }}
+                    <a href="{% url 'viajes:viaje_pasajeros' viaje.pk %}" class="btn btn-sm btn-outline-primary ms-2">
+                        <i class="fas fa-users me-1"></i>Ver Pasajeros
+                    </a>
+                </p>
+                <p><strong>Ocupación:</strong> 
+                    <div class="progress" style="height: 20px;">
+                        <div class="progress-bar bg-{% if viaje.get_pasajeros_count >= viaje.bus.capacidad_pasajeros %}danger{% elif viaje.get_pasajeros_count >= viaje.bus.capacidad_pasajeros|floatformat:0|mul:0.8 %}warning{% else %}success{% endif %}" 
+                             role="progressbar" 
+                             style="width: {% widthratio viaje.get_pasajeros_count viaje.bus.capacidad_pasajeros 100 %}%"
+                             aria-valuenow="{{ viaje.get_pasajeros_count }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="{{ viaje.bus.capacidad_pasajeros }}">
+                            {% widthratio viaje.get_pasajeros_count viaje.bus.capacidad_pasajeros 100 %}%
+                        </div>
+                    </div>
+                </p>
+                <p><strong>Capacidad del Bus:</strong> {{ viaje.bus.capacidad_pasajeros }} pasajeros</p>
+                {% if viaje.observaciones %}
+                    <p>
+                        <strong>Observaciones:</strong><br>
+                        <span class="text-muted">{{ viaje.observaciones }}</span>
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-secondary text-white">
+        <i class="fas fa-clock me-2"></i>Historial
+    </div>
+    <div class="card-body">
+        <p><small class="text-muted">Creado: {{ viaje.creado_en|date:"d/m/Y H:i" }}</small></p>
+        <p><small class="text-muted">Última actualización: {{ viaje.actualizado_en|date:"d/m/Y H:i" }}</small></p>
+    </div>
+</div>
+
+<div class="mt-4 d-flex gap-2">
+    <a href="{% url 'viajes:viaje_pasajeros' viaje.pk %}" class="btn btn-success">
+        <i class="fas fa-users me-2"></i>Gestionar Pasajeros
+    </a>
+    <a href="{% url 'viajes:viaje_update' viaje.pk %}" class="btn btn-warning">
+        <i class="fas fa-edit me-2"></i>Editar
+    </a>
+    <a href="{% url 'viajes:viaje_delete' viaje.pk %}" class="btn btn-danger">
+        <i class="fas fa-trash me-2"></i>Eliminar
+    </a>
+    <a href="{% url 'viajes:viaje_list' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Volver
+    </a>
+</div>
+{% endblock %}

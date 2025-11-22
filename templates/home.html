@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block title %}Inicio - Sistema de Gestión de Flota{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="fas fa-tachometer-alt me-2"></i>
+            Panel de Control
+        </h1>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Buses</h5>
+                        <h2 class="mb-0">{{ total_buses }}</h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-bus fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'bus_list' %}" class="text-white text-decoration-none">
+                    Ver todos <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Conductores</h5>
+                        <h2 class="mb-0">{{ total_conductores }}</h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-user fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'conductor_list' %}" class="text-white text-decoration-none">
+                    Ver todos <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Lugares</h5>
+                        <h2 class="mb-0">{{ total_lugares }}</h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-map-marker-alt fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'lugar_list' %}" class="text-white text-decoration-none">
+                    Ver todos <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Viajes</h5>
+                        <h2 class="mb-0">0</h2>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-route fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <span class="text-white">Próximamente</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-tools me-2"></i>
+                    Acciones Rápidas
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'bus_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>
+                        Agregar Nuevo Bus
+                    </a>
+                    <a href="{% url 'conductor_create' %}" class="btn btn-success">
+                        <i class="fas fa-user-plus me-2"></i>
+                        Agregar Nuevo Conductor
+                    </a>
+                    <a href="{% url 'lugar_create' %}" class="btn btn-info">
+                        <i class="fas fa-map-pin me-2"></i>
+                        Agregar Nuevo Lugar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Información del Sistema
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-2"><strong>Sistema de Gestión de Flota de Buses</strong></p>
+                <p class="mb-2">Versión: 1.0.0</p>
+                <p class="mb-2">Última actualización: {% now "d/m/Y" %}</p>
+                <p class="mb-0">Estado del sistema: <span class="badge bg-success">Activo</span></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

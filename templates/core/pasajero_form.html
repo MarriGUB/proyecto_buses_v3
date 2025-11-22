@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if object %}Editar Pasajero{% else %}Nuevo Pasajero{% endif %} - Sistema de Gestión de Flota
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-user me-2"></i>
+                    {% if object %}Editar Pasajero{% else %}Nuevo Pasajero{% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.nombre_completo.id_for_label }}" class="form-label">Nombre Completo *</label>
+                            {{ form.nombre_completo }}
+                            {% if form.nombre_completo.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.nombre_completo.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.rut.id_for_label }}" class="form-label">RUT *</label>
+                            {{ form.rut }}
+                            {% if form.rut.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.rut.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.telefono.id_for_label }}" class="form-label">Teléfono *</label>
+                            {{ form.telefono }}
+                            {% if form.telefono.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.telefono.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.correo.id_for_label }}" class="form-label">Correo Electrónico *</label>
+                            {{ form.correo }}
+                            {% if form.correo.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.correo.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'pasajero_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Volver
+                        </a>
+                        <button type="submit" class="btn btn-create">
+                            <i class="fas fa-save me-2"></i>
+                            {% if object %}Actualizar{% else %}Crear{% endif %} Pasajero
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

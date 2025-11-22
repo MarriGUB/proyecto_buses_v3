@@ -1,0 +1,761 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if form.instance.pk %}Editar Lugar{% else %}Agregar Lugar{% endif %} - Sistema de Gestión de Flota{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
+<style>
+    #map {
+        height: 400px;
+        width: 100%;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .map-instructions {
+        background-color: #e3f2fd;
+        border: 1px solid #2196F3;
+        border-radius: 6px;
+        padding: 10px;
+        margin-bottom: 15px;
+    }
+    .coordinates-display {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        padding: 10px;
+        margin-top: 10px;
+        font-family: monospace;
+    }
+    .search-container {
+        position: relative;
+        margin-bottom: 15px;
+    }
+    .search-input {
+        width: 100%;
+        padding: 12px 50px 12px 40px;
+        border: 2px solid #e0e0e0;
+        border-radius: 25px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+    .search-input:focus {
+        outline: none;
+        border-color: #2196F3;
+        box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+    }
+    .search-input::placeholder {
+        color: #999;
+    }
+    .search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #666;
+        font-size: 16px;
+    }
+    .search-btn {
+        position: absolute;
+        right: 5px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: #2196F3;
+        border: none;
+        border-radius: 20px;
+        color: white;
+        padding: 8px 16px;
+        cursor: pointer;
+        font-size: 12px;
+        transition: background 0.3s ease;
+    }
+    .search-btn:hover {
+        background: #1976D2;
+    }
+    .search-btn:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+    }
+    .search-results {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        max-height: 300px;
+        overflow-y: auto;
+        z-index: 1000;
+        display: none;
+    }
+    .search-results.show {
+        display: block;
+    }
+    .search-result-item {
+        padding: 12px 16px;
+        cursor: pointer;
+        border-bottom: 1px solid #f0f0f0;
+        transition: background 0.2s ease;
+    }
+    .search-result-item:hover {
+        background: #f8f9fa;
+    }
+    .search-result-item:last-child {
+        border-bottom: none;
+    }
+    .search-result-title {
+        font-weight: 500;
+        color: #333;
+        margin-bottom: 2px;
+    }
+    .search-result-address {
+        font-size: 12px;
+        color: #666;
+    }
+    .search-loading {
+        text-align: center;
+        padding: 20px;
+        color: #666;
+    }
+    .search-no-results {
+        text-align: center;
+        padding: 20px;
+        color: #999;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="fas fa-map-marker-alt me-2"></i>
+                {% if form.instance.pk %}Editar Lugar{% else %}Agregar Nuevo Lugar{% endif %}
+            </h1>
+            <a href="{% url 'lugar_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>
+                Volver a la lista
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-map me-2"></i>
+                    Mapa Interactivo - Selecciona la Ubicación
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="map-instructions">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Instrucciones:</strong> Busca una dirección en la barra de búsqueda o haz clic directamente en el mapa para seleccionar la ubicación exacta del lugar. 
+                    Los campos del formulario se completarán automáticamente con la información de la ubicación.
+                </div>
+                
+                <!-- Barra de búsqueda -->
+                <div class="search-container">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" 
+                           id="search-input" 
+                           class="search-input" 
+                           placeholder="Buscar dirección, ciudad, lugar... (ej: Quito, Ecuador o Plaza Grande)"
+                           autocomplete="off">
+                    <button type="button" id="search-btn" class="search-btn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    
+                    <!-- Resultados de búsqueda -->
+                    <div id="search-results" class="search-results">
+                        <!-- Los resultados se cargan dinámicamente aquí -->
+                    </div>
+                </div>
+                
+                <div id="map"></div>
+                
+                <div class="coordinates-display" id="coordinates-display" style="display: none;">
+                    <strong>Coordenadas seleccionadas:</strong>
+                    <div id="selected-coordinates">Ninguna ubicación seleccionada</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Información del Lugar
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.nombre.id_for_label }}" class="form-label">
+                                <strong>Nombre del Lugar *</strong>
+                            </label>
+                            {{ form.nombre }}
+                            {% if form.nombre.errors %}
+                                <div class="text-danger small">
+                                    {{ form.nombre.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.ciudad.id_for_label }}" class="form-label">
+                                <strong>Ciudad *</strong>
+                            </label>
+                            {{ form.ciudad }}
+                            {% if form.ciudad.errors %}
+                                <div class="text-danger small">
+                                    {{ form.ciudad.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.provincia.id_for_label }}" class="form-label">
+                                <strong>Provincia</strong>
+                            </label>
+                            {{ form.provincia }}
+                            {% if form.provincia.errors %}
+                                <div class="text-danger small">
+                                    {{ form.provincia.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.pais.id_for_label }}" class="form-label">
+                                <strong>País *</strong>
+                            </label>
+                            {{ form.pais }}
+                            {% if form.pais.errors %}
+                                <div class="text-danger small">
+                                    {{ form.pais.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <h6 class="text-muted">
+                                <i class="fas fa-map me-2"></i>
+                                Coordenadas GPS (Opcional)
+                            </h6>
+                            <small class="text-muted">Estas coordenadas ayudan a ubicar el lugar exacto en el mapa</small>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.latitud.id_for_label }}" class="form-label">
+                                <strong>Latitud</strong>
+                            </label>
+                            {{ form.latitud }}
+                            {% if form.latitud.errors %}
+                                <div class="text-danger small">
+                                    {{ form.latitud.errors }}
+                                </div>
+                            {% endif %}
+                            <small class="text-muted">Ejemplo: -2.183333</small>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.longitud.id_for_label }}" class="form-label">
+                                <strong>Longitud</strong>
+                            </label>
+                            {{ form.longitud }}
+                            {% if form.longitud.errors %}
+                                <div class="text-danger small">
+                                    {{ form.longitud.errors }}
+                                </div>
+                            {% endif %}
+                            <small class="text-muted">Ejemplo: -79.883333</small>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'lugar_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-2"></i>
+                            Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>
+                            {% if form.instance.pk %}Actualizar Lugar{% else %}Crear Lugar{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    Información Importante
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-info-circle me-2"></i>Campos Obligatorios</h6>
+                    <p class="mb-0 small">Los campos marcados con (*) son obligatorios y deben ser completados.</p>
+                </div>
+                
+                <div class="alert alert-success">
+                    <h6><i class="fas fa-map me-2"></i>Coordenadas GPS</h6>
+                    <p class="mb-0 small">Las coordenadas son opcionales pero recomendadas para una mejor ubicación en mapas y cálculo de rutas.</p>
+                </div>
+                
+                <div class="alert alert-warning">
+                    <h6><i class="fas fa-exclamation-triangle me-2"></i>Formato de Coordenadas</h6>
+                    <ul class="mb-0 small">
+                        <li>Latitud: -90 a 90</li>
+                        <li>Longitud: -180 a 180</li>
+                        <li>Usar punto decimal</li>
+                        <li>Ejemplo Ecuador: -1.831239, -78.183406</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-question-circle me-2"></i>
+                    ¿Cómo obtener coordenadas?
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="small">Para obtener las coordenadas de un lugar:</p>
+                <ol class="small">
+                    <li>Abrir Google Maps</li>
+                    <li>Buscar el lugar</li>
+                    <li>Clic derecho en el punto exacto</li>
+                    <li>Copiar las coordenadas que aparecen</li>
+                </ol>
+                <a href="https://maps.google.com" target="_blank" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-external-link-alt me-2"></i>
+                    Abrir Google Maps
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Coordenadas por defecto para Ecuador (Quito)
+    let defaultLat = -0.2295;
+    let defaultLng = -78.5243;
+    
+    // Si hay coordenadas existentes, usarlas
+    const latInput = document.getElementById('id_latitud');
+    const lngInput = document.getElementById('id_longitud');
+    
+    if (latInput.value && lngInput.value) {
+        defaultLat = parseFloat(latInput.value);
+        defaultLng = parseFloat(lngInput.value);
+    }
+    
+    // Inicializar el mapa
+    const map = L.map('map').setView([defaultLat, defaultLng], 13);
+    
+    // Agregar capa de mapa de OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+    
+    // Marcador para la ubicación seleccionada
+    let marker = null;
+    
+    // Si hay coordenadas existentes, mostrar el marcador
+    if (latInput.value && lngInput.value) {
+        marker = L.marker([defaultLat, defaultLng]).addTo(map);
+        updateCoordinatesDisplay(defaultLat, defaultLng);
+    }
+    
+    // Función para actualizar la visualización de coordenadas
+    function updateCoordinatesDisplay(lat, lng) {
+        const display = document.getElementById('coordinates-display');
+        const coordinates = document.getElementById('selected-coordinates');
+        display.style.display = 'block';
+        coordinates.innerHTML = `Latitud: ${lat.toFixed(6)}, Longitud: ${lng.toFixed(6)}`;
+    }
+    
+    // Función para obtener información del lugar usando geocodificación inversa
+    async function getLocationInfo(lat, lng) {
+        try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
+            const data = await response.json();
+            
+            if (data && data.address) {
+                // Extraer información del lugar
+                const address = data.address;
+                
+                // Determinar el nombre del lugar
+                let nombre = '';
+                if (address.amenity) nombre = address.amenity;
+                else if (address.shop) nombre = address.shop;
+                else if (address.office) nombre = address.office;
+                else if (address.building) nombre = address.building;
+                else if (address.house_number && address.road) nombre = `${address.road} ${address.house_number}`;
+                else if (address.road) nombre = address.road;
+                else if (address.suburb) nombre = address.suburb;
+                else if (address.neighbourhood) nombre = address.neighbourhood;
+                else nombre = 'Ubicación seleccionada';
+                
+                // Ciudad
+                let ciudad = '';
+                if (address.city) ciudad = address.city;
+                else if (address.town) ciudad = address.town;
+                else if (address.village) ciudad = address.village;
+                else if (address.municipality) ciudad = address.municipality;
+                else if (address.county) ciudad = address.county;
+                
+                // Provincia/Estado
+                let provincia = '';
+                if (address.state) provincia = address.state;
+                else if (address.province) provincia = address.province;
+                else if (address.region) provincia = address.region;
+                
+                // País
+                let pais = address.country || 'Ecuador';
+                
+                // Actualizar los campos del formulario
+                const nombreInput = document.getElementById('id_nombre');
+                const ciudadInput = document.getElementById('id_ciudad');
+                const provinciaInput = document.getElementById('id_provincia');
+                const paisInput = document.getElementById('id_pais');
+                
+                if (nombreInput && nombre) nombreInput.value = nombre;
+                if (ciudadInput && ciudad) ciudadInput.value = ciudad;
+                if (provinciaInput && provincia) provinciaInput.value = provincia;
+                if (paisInput && pais) paisInput.value = pais;
+                
+                // Mostrar mensaje de éxito
+                showToast('Información del lugar cargada exitosamente', 'success');
+            }
+        } catch (error) {
+            console.error('Error al obtener información del lugar:', error);
+            showToast('No se pudo obtener información detallada del lugar', 'warning');
+        }
+    }
+    
+    // Función para mostrar mensajes temporales
+    function showToast(message, type = 'info') {
+        // Crear elemento de toast
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 300px;';
+        toast.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        // Remover después de 5 segundos
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 5000);
+    }
+    
+    // Variables para la búsqueda
+    const searchInput = document.getElementById('search-input');
+    const searchBtn = document.getElementById('search-btn');
+    const searchResults = document.getElementById('search-results');
+    let searchTimeout;
+    
+    // Función para buscar lugares
+    async function searchPlaces(query) {
+        if (!query || query.length < 3) {
+            hideSearchResults();
+            return;
+        }
+        
+        try {
+            showSearchLoading();
+            
+            // Buscar con prioridad en Ecuador
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=8&countrycodes=ec&addressdetails=1&extratags=1`);
+            let data = await response.json();
+            
+            // Si no hay resultados en Ecuador, buscar globalmente
+            if (data.length === 0) {
+                const globalResponse = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`);
+                data = await globalResponse.json();
+            }
+            
+            displaySearchResults(data);
+            
+        } catch (error) {
+            console.error('Error en la búsqueda:', error);
+            showSearchError();
+        }
+    }
+    
+    // Función para mostrar loading en resultados
+    function showSearchLoading() {
+        searchResults.innerHTML = '<div class="search-loading"><i class="fas fa-spinner fa-spin me-2"></i>Buscando...</div>';
+        searchResults.classList.add('show');
+    }
+    
+    // Función para mostrar error en la búsqueda
+    function showSearchError() {
+        searchResults.innerHTML = '<div class="search-no-results"><i class="fas fa-exclamation-triangle me-2"></i>Error al buscar. Intenta de nuevo.</div>';
+        searchResults.classList.add('show');
+    }
+    
+    // Función para mostrar resultados de búsqueda
+    function displaySearchResults(results) {
+        if (results.length === 0) {
+            searchResults.innerHTML = '<div class="search-no-results"><i class="fas fa-map-marker-alt me-2"></i>No se encontraron resultados</div>';
+            searchResults.classList.add('show');
+            return;
+        }
+        
+        const resultsHTML = results.map(result => {
+            const address = result.address || {};
+            let title = result.display_name.split(',')[0];
+            let fullAddress = result.display_name;
+            
+            // Mejorar el título
+            if (address.amenity) title = address.amenity;
+            else if (address.shop) title = address.shop;
+            else if (address.office) title = address.office;
+            else if (address.building) title = address.building;
+            else if (address.road) title = address.road;
+            
+            return `
+                <div class="search-result-item" data-lat="${result.lat}" data-lon="${result.lon}" data-display="${result.display_name}">
+                    <div class="search-result-title">${title}</div>
+                    <div class="search-result-address">${fullAddress}</div>
+                </div>
+            `;
+        }).join('');
+        
+        searchResults.innerHTML = resultsHTML;
+        searchResults.classList.add('show');
+        
+        // Agregar event listeners a los resultados
+        searchResults.querySelectorAll('.search-result-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const lat = parseFloat(this.dataset.lat);
+                const lon = parseFloat(this.dataset.lon);
+                const displayName = this.dataset.display;
+                
+                selectLocationFromSearch(lat, lon, displayName);
+            });
+        });
+    }
+    
+    // Función para ocultar resultados de búsqueda
+    function hideSearchResults() {
+        searchResults.classList.remove('show');
+    }
+    
+    // Función para seleccionar una ubicación desde la búsqueda
+    function selectLocationFromSearch(lat, lng, displayName) {
+        // Centrar el mapa en la ubicación
+        map.setView([lat, lng], 16);
+        
+        // Remover marcador anterior si existe
+        if (marker) {
+            map.removeLayer(marker);
+        }
+        
+        // Agregar nuevo marcador
+        marker = L.marker([lat, lng]).addTo(map);
+        
+        // Actualizar campos de coordenadas
+        latInput.value = lat.toFixed(6);
+        lngInput.value = lng.toFixed(6);
+        
+        // Actualizar visualización de coordenadas
+        updateCoordinatesDisplay(lat, lng);
+        
+        // Obtener información detallada del lugar
+        getLocationInfo(lat, lng);
+        
+        // Ocultar resultados y limpiar input
+        hideSearchResults();
+        searchInput.value = displayName.split(',').slice(0, 2).join(', ');
+        
+        showToast('Ubicación seleccionada desde búsqueda', 'success');
+    }
+    
+    // Event listener para clicks en el mapa
+    map.on('click', function(e) {
+        const lat = e.latlng.lat;
+        const lng = e.latlng.lng;
+        
+        // Remover marcador anterior si existe
+        if (marker) {
+            map.removeLayer(marker);
+        }
+        
+        // Agregar nuevo marcador
+        marker = L.marker([lat, lng]).addTo(map);
+        
+        // Actualizar campos de coordenadas
+        latInput.value = lat.toFixed(6);
+        lngInput.value = lng.toFixed(6);
+        
+        // Actualizar visualización de coordenadas
+        updateCoordinatesDisplay(lat, lng);
+        
+        // Obtener información del lugar
+        getLocationInfo(lat, lng);
+        
+        showToast('Ubicación seleccionada. Obteniendo información...', 'info');
+    });
+    
+    // Botón para centrar en Ecuador si se pierde la ubicación
+    const centerButton = L.control({position: 'topright'});
+    centerButton.onAdd = function(map) {
+        const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
+        div.style.backgroundColor = 'white';
+        div.style.width = '30px';
+        div.style.height = '30px';
+        div.style.cursor = 'pointer';
+        div.style.display = 'flex';
+        div.style.alignItems = 'center';
+        div.style.justifyContent = 'center';
+        div.innerHTML = '🇪🇨';
+        div.title = 'Centrar en Ecuador';
+        
+        div.onclick = function() {
+            map.setView([-1.831239, -78.183406], 6);
+        };
+        
+        return div;
+    };
+    centerButton.addTo(map);
+    
+    // Event listeners para la búsqueda
+    
+    // Búsqueda mientras escribes (debounced)
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        const query = this.value.trim();
+        
+        if (query.length < 3) {
+            hideSearchResults();
+            return;
+        }
+        
+        searchTimeout = setTimeout(() => {
+            searchPlaces(query);
+        }, 300); // Esperar 300ms después de que el usuario deje de escribir
+    });
+    
+    // Búsqueda al hacer clic en el botón
+    searchBtn.addEventListener('click', function() {
+        const query = searchInput.value.trim();
+        if (query) {
+            searchPlaces(query);
+        }
+    });
+    
+    // Búsqueda al presionar Enter
+    searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const query = this.value.trim();
+            if (query) {
+                searchPlaces(query);
+            }
+        }
+    });
+    
+    // Ocultar resultados al hacer clic fuera
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !searchResults.contains(e.target) && !searchBtn.contains(e.target)) {
+            hideSearchResults();
+        }
+    });
+    
+    // Mostrar resultados al hacer foco en el input si hay contenido
+    searchInput.addEventListener('focus', function() {
+        if (this.value.trim().length >= 3) {
+            searchResults.classList.add('show');
+        }
+    });
+    
+    // Navegación con teclado en los resultados
+    searchInput.addEventListener('keydown', function(e) {
+        const items = searchResults.querySelectorAll('.search-result-item');
+        const activeItem = searchResults.querySelector('.search-result-item.active');
+        
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (activeItem) {
+                activeItem.classList.remove('active');
+                const next = activeItem.nextElementSibling;
+                if (next) {
+                    next.classList.add('active');
+                } else {
+                    items[0]?.classList.add('active');
+                }
+            } else {
+                items[0]?.classList.add('active');
+            }
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (activeItem) {
+                activeItem.classList.remove('active');
+                const prev = activeItem.previousElementSibling;
+                if (prev) {
+                    prev.classList.add('active');
+                } else {
+                    items[items.length - 1]?.classList.add('active');
+                }
+            } else {
+                items[items.length - 1]?.classList.add('active');
+            }
+        } else if (e.key === 'Enter' && activeItem) {
+            e.preventDefault();
+            activeItem.click();
+        }
+    });
+    
+    // Agregar estilos para la navegación con teclado
+    const style = document.createElement('style');
+    style.textContent = `
+        .search-result-item.active {
+            background-color: #e3f2fd !important;
+            border-left: 3px solid #2196F3;
+        }
+    `;
+    document.head.appendChild(style);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}Eliminar Bus {{ bus.placa }} - Sistema de Gestión de Flota{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+                Eliminar Bus
+            </h1>
+            <a href="{% url 'flota:bus_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>
+                Volver a la lista
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Confirmar Eliminación
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-danger">
+                    <h6><i class="fas fa-warning me-2"></i>¡Atención!</h6>
+                    <p class="mb-0">Esta acción no se puede deshacer. Al eliminar este bus se perderán todos los datos asociados incluyendo documentos y mantenimientos.</p>
+                </div>
+                
+                <div class="mb-4">
+                    <h6>¿Está seguro que desea eliminar el siguiente bus?</h6>
+                    
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>Placa:</strong> {{ bus.placa }}<br>
+                                    <strong>Modelo:</strong> {{ bus.modelo }}<br>
+                                    <strong>Año:</strong> {{ bus.año_fabricacion }}
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Capacidad:</strong> {{ bus.capacidad_pasajeros }} pasajeros<br>
+                                    <strong>Estado:</strong> 
+                                    <span class="badge {% if bus.estado == 'activo' %}bg-success{% elif bus.estado == 'mantenimiento' %}bg-warning{% else %}bg-danger{% endif %}">
+                                        {{ bus.get_estado_display }}
+                                    </span><br>
+                                    <strong>Fecha Adquisición:</strong> {{ bus.fecha_adquisicion|date:"d/m/Y" }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <h6>Datos que se eliminarán:</h6>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-file-alt text-info me-2"></i> {{ bus.documentos.count }} documento(s) del vehículo</li>
+                        <li><i class="fas fa-tools text-warning me-2"></i> {{ bus.mantenimientos.count }} registro(s) de mantenimiento</li>
+                        <li><i class="fas fa-route text-primary me-2"></i> Historial de viajes asociados (si los hay)</li>
+                    </ul>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'flota:bus_detail' bus.pk %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-2"></i>
+                            Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash me-2"></i>
+                            Sí, Eliminar Bus
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

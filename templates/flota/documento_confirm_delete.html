@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}Eliminar Documento - Sistema de Gestión de Flota{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle"></i> Eliminar Documento
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p>¿Estás seguro de que deseas eliminar este documento?</p>
+                    <p><strong>Tipo:</strong> {{ object.get_tipo_display }}</p>
+                    <p><strong>Número:</strong> {{ object.numero_documento|default:"-" }}</p>
+                    <p><strong>Vencimiento:</strong> {{ object.fecha_vencimiento|date:"d/m/Y" }}</p>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'flota:bus_detail' object.bus.id %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Confirmar Eliminación
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

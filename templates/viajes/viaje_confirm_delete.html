@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirmar Eliminación - Sistema de Gestión de Flota{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card card-danger">
+            <div class="card-header bg-danger text-white">
+                <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Eliminación
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning" role="alert">
+                    <i class="fas fa-warning me-2"></i>
+                    <strong>¡Advertencia!</strong> Esta acción no se puede deshacer.
+                </div>
+
+                <p class="mb-3">
+                    ¿Estás seguro de que deseas eliminar el siguiente viaje?
+                </p>
+
+                <div class="bg-light p-3 rounded mb-4">
+                    <p class="mb-2">
+                        <strong>Bus:</strong> {{ viaje.bus.placa }}
+                    </p>
+                    <p class="mb-2">
+                        <strong>Conductor:</strong> {{ viaje.conductor.apellido }}, {{ viaje.conductor.nombre }}
+                    </p>
+                    <p class="mb-2">
+                        <strong>Ruta:</strong> {{ viaje.lugar_origen.nombre }} → {{ viaje.lugar_destino.nombre }}
+                    </p>
+                    <p class="mb-0">
+                        <strong>Fecha de Salida:</strong> {{ viaje.fecha_salida|date:"d/m/Y H:i" }}
+                    </p>
+                </div>
+
+                <form method="post" class="d-inline">
+                    {% csrf_token %}
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'viajes:viaje_list' %}" class="btn btn-secondary flex-grow-1">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-danger flex-grow-1">
+                            <i class="fas fa-trash me-2"></i>Sí, Eliminar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if form.instance.pk %}Editar Bus{% else %}Agregar Bus{% endif %} - Sistema de Gestión de Flota{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="fas fa-bus me-2"></i>
+                {% if form.instance.pk %}Editar Bus{% else %}Agregar Nuevo Bus{% endif %}
+            </h1>
+            <a href="{% url 'flota:bus_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>
+                Volver a la lista
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Información del Bus
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.placa.id_for_label }}" class="form-label">
+                                <strong>Placa *</strong>
+                            </label>
+                            {{ form.placa }}
+                            {% if form.placa.errors %}
+                                <div class="text-danger small">
+                                    {{ form.placa.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.modelo.id_for_label }}" class="form-label">
+                                <strong>Modelo *</strong>
+                            </label>
+                            {{ form.modelo }}
+                            {% if form.modelo.errors %}
+                                <div class="text-danger small">
+                                    {{ form.modelo.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.año_fabricacion.id_for_label }}" class="form-label">
+                                <strong>Año de Fabricación *</strong>
+                            </label>
+                            {{ form.año_fabricacion }}
+                            {% if form.año_fabricacion.errors %}
+                                <div class="text-danger small">
+                                    {{ form.año_fabricacion.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.capacidad_pasajeros.id_for_label }}" class="form-label">
+                                <strong>Capacidad de Pasajeros *</strong>
+                            </label>
+                            {{ form.capacidad_pasajeros }}
+                            {% if form.capacidad_pasajeros.errors %}
+                                <div class="text-danger small">
+                                    {{ form.capacidad_pasajeros.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.numero_chasis.id_for_label }}" class="form-label">
+                                <strong>Número de Chasis *</strong>
+                            </label>
+                            {{ form.numero_chasis }}
+                            {% if form.numero_chasis.errors %}
+                                <div class="text-danger small">
+                                    {{ form.numero_chasis.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.numero_motor.id_for_label }}" class="form-label">
+                                <strong>Número de Motor *</strong>
+                            </label>
+                            {{ form.numero_motor }}
+                            {% if form.numero_motor.errors %}
+                                <div class="text-danger small">
+                                    {{ form.numero_motor.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.estado.id_for_label }}" class="form-label">
+                                <strong>Estado *</strong>
+                            </label>
+                            {{ form.estado }}
+                            {% if form.estado.errors %}
+                                <div class="text-danger small">
+                                    {{ form.estado.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.fecha_adquisicion.id_for_label }}" class="form-label">
+                                <strong>Fecha de Adquisición *</strong>
+                            </label>
+                            {{ form.fecha_adquisicion }}
+                            {% if form.fecha_adquisicion.errors %}
+                                <div class="text-danger small">
+                                    {{ form.fecha_adquisicion.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'flota:bus_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-2"></i>
+                            Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>
+                            {% if form.instance.pk %}Actualizar Bus{% else %}Crear Bus{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    Información Importante
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-info-circle me-2"></i>Campos Obligatorios</h6>
+                    <p class="mb-0 small">Los campos marcados con (*) son obligatorios y deben ser completados.</p>
+                </div>
+                
+                <div class="alert alert-warning">
+                    <h6><i class="fas fa-exclamation-triangle me-2"></i>Datos Únicos</h6>
+                    <p class="mb-0 small">La placa, número de chasis y número de motor deben ser únicos en el sistema.</p>
+                </div>
+                
+                <div class="alert alert-success">
+                    <h6><i class="fas fa-check-circle me-2"></i>Estados Disponibles</h6>
+                    <ul class="mb-0 small">
+                        <li><strong>Activo:</strong> Bus en operación</li>
+                        <li><strong>Mantenimiento:</strong> Bus en reparación</li>
+                        <li><strong>Inactivo:</strong> Bus fuera de servicio</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

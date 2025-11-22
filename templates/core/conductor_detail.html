@@ -1,0 +1,241 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalles del Conductor {{ conductor.apellido }}, {{ conductor.nombre }} - Sistema de Gestión de Flota{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="fas fa-user me-2"></i>
+                Detalles del Conductor - {{ conductor.apellido }}, {{ conductor.nombre }}
+            </h1>
+            <div>
+                <a href="{% url 'conductor_list' %}" class="btn btn-secondary me-2">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Volver
+                </a>
+                <a href="{% url 'conductor_update' conductor.pk %}" class="btn btn-warning">
+                    <i class="fas fa-edit me-2"></i>
+                    Editar
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Información Personal
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Nombre</label>
+                        <div class="fw-bold">{{ conductor.nombre }}</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Apellido</label>
+                        <div class="fw-bold">{{ conductor.apellido }}</div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Cédula</label>
+                        <div class="fw-bold">{{ conductor.cedula }}</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Estado</label>
+                        <div>
+                            <span class="badge {% if conductor.activo %}bg-success{% else %}bg-danger{% endif %} fs-6">
+                                {% if conductor.activo %}Activo{% else %}Inactivo{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Email</label>
+                        <div class="fw-bold">
+                            <a href="mailto:{{ conductor.email }}" class="text-decoration-none">
+                                <i class="fas fa-envelope me-2"></i>
+                                {{ conductor.email }}
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Teléfono</label>
+                        <div class="fw-bold">
+                            <a href="tel:{{ conductor.telefono }}" class="text-decoration-none">
+                                <i class="fas fa-phone me-2"></i>
+                                {{ conductor.telefono }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Fecha de Contratación</label>
+                        <div class="fw-bold">{{ conductor.fecha_contratacion|date:"d/m/Y" }}</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Tiempo en la empresa</label>
+                        <div class="fw-bold">{{ conductor.tiempo_empresa|default:"Calculando..." }}</div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Registrado en</label>
+                        <div class="fw-bold">{{ conductor.creado_en|date:"d/m/Y H:i" }}</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Última actualización</label>
+                        <div class="fw-bold">{{ conductor.actualizado_en|date:"d/m/Y H:i" }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sección de Documentos del Conductor -->
+        <div class="card mt-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-id-card me-2"></i>
+                    Documentos del Conductor
+                </h5>
+                <button class="btn btn-sm btn-primary">
+                    <i class="fas fa-plus me-2"></i>
+                    Agregar Documento
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="border rounded p-3 mb-3">
+                            <h6><i class="fas fa-id-card me-2"></i>Licencia de Conducir</h6>
+                            <p class="text-muted mb-1">Estado: <span class="badge bg-warning">Pendiente</span></p>
+                            <small class="text-muted">No registrada</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="border rounded p-3 mb-3">
+                            <h6><i class="fas fa-heart me-2"></i>Certificado Médico</h6>
+                            <p class="text-muted mb-1">Estado: <span class="badge bg-warning">Pendiente</span></p>
+                            <small class="text-muted">No registrado</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sección de Viajes Recientes -->
+        <div class="card mt-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-route me-2"></i>
+                    Viajes Recientes
+                </h5>
+                <button class="btn btn-sm btn-primary">
+                    <i class="fas fa-plus me-2"></i>
+                    Asignar Viaje
+                </button>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-0">No hay viajes registrados para este conductor.</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-cog me-2"></i>
+                    Acciones
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'conductor_update' conductor.pk %}" class="btn btn-warning">
+                        <i class="fas fa-edit me-2"></i>
+                        Editar Conductor
+                    </a>
+                    <button class="btn btn-info">
+                        <i class="fas fa-id-card me-2"></i>
+                        Gestionar Documentos
+                    </button>
+                    <button class="btn btn-success">
+                        <i class="fas fa-route me-2"></i>
+                        Asignar Viaje
+                    </button>
+                    <hr>
+                    <a href="{% url 'conductor_delete' conductor.pk %}" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>
+                        Eliminar Conductor
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Estadísticas
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <small class="text-muted">Total de Viajes</small>
+                    <div class="fw-bold">0</div>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted">Viajes Este Mes</small>
+                    <div class="fw-bold">0</div>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted">Calificación Promedio</small>
+                    <div class="fw-bold text-warning">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        5.0
+                    </div>
+                </div>
+                <div>
+                    <small class="text-muted">Estado General</small>
+                    <div class="fw-bold text-success">Excelente</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-bell me-2"></i>
+                    Alertas
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning alert-sm">
+                    <small><i class="fas fa-exclamation-triangle me-2"></i>Licencia de conducir no registrada</small>
+                </div>
+                <div class="alert alert-info alert-sm">
+                    <small><i class="fas fa-info-circle me-2"></i>Certificado médico pendiente</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
