@@ -232,3 +232,17 @@ def editar_pasajero_viaje(request, pk, pasajero_pk):
         'viaje_pasajero': viaje_pasajero,
     }
     return render(request, 'viajes/editar_pasajero_viaje.html', context)
+
+
+# NUEVA VISTA PARA ITINERARIO
+def itinerario_view(request, pk):
+    """
+    Vista para gestionar el itinerario de un viaje
+    """
+    viaje = get_object_or_404(Viaje, pk=pk)
+    
+    context = {
+        'viaje': viaje,
+        'titulo': f'Itinerario - Viaje {viaje.id}'
+    }
+    return render(request, 'viajes/itinerario.html', context)

@@ -16,4 +16,7 @@ urlpatterns = [
     path('<int:pk>/pasajeros/agregar/', views.agregar_pasajero_viaje, name='agregar_pasajero_viaje'),
     path('<int:pk>/pasajeros/<int:pasajero_pk>/quitar/', views.quitar_pasajero_viaje, name='quitar_pasajero_viaje'),
     path('<int:pk>/pasajeros/<int:pasajero_pk>/editar/', views.editar_pasajero_viaje, name='editar_pasajero_viaje'),
+    
+    # NUEVA URL PARA ITINERARIO
+    path('<int:pk>/itinerario/', views.itinerario_view, name='itinerario'),
 ]
