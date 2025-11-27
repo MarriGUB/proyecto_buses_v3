@@ -5,390 +5,361 @@
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-12">
-        <!-- BOTONES COMO PESTAÑAS -->
-        <div class="card mb-4">
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <button type="button" class="btn btn-outline-info w-100 active" id="btnGestionCostos" data-target="gestion-content">
-                            <i class="fas fa-calculator me-2"></i>Gestión y Costos
-                        </button>
-                    </div>
-                    <div class="col-md-6">
-                        {% if viaje %}
-                            <button type="button" class="btn btn-outline-success w-100" id="btnItinerario" data-target="itinerario-content">
-                                <i class="fas fa-route me-2"></i>Itinerario
-                            </button>
-                        {% else %}
-                            <button type="button" class="btn btn-outline-secondary w-100" disabled title="El itinerario estará disponible después de crear el viaje">
-                                <i class="fas fa-route me-2"></i>Itinerario
-                            </button>
-                        {% endif %}
-                    </div>
-                </div>
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <i class="fas fa-{% if viaje %}edit{% else %}plus{% endif %} me-2"></i>
+                {% if viaje %}Editar Viaje{% else %}Crear Nuevo Viaje{% endif %}
             </div>
-        </div>
-
-        <!-- CONTENIDO DE GESTIÓN Y COSTOS (visible por defecto) -->
-        <div id="gestion-content" class="content-section">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <i class="fas fa-{% if viaje %}edit{% else %}plus{% endif %} me-2"></i>
-                    {% if viaje %}Editar Viaje{% else %}Crear Nuevo Viaje{% endif %}
-                </div>
-                <div class="card-body">
-                    <form method="post" class="needs-validation">
-                        {% csrf_token %}
-                        
-                        {% if form.non_field_errors %}
-                            <div class="alert alert-danger" role="alert">
-                                <strong>Errores en el formulario:</strong>
-                                <ul class="mb-0">
-                                    {% for error in form.non_field_errors %}
-                                        <li>{{ error }}</li>
-                                    {% endfor %}
-                                </ul>
-                            </div>
-                        {% endif %}
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.bus.id_for_label }}" class="form-label">
-                                    <i class="fas fa-bus me-2"></i>Bus <span class="text-danger">*</span>
-                                </label>
-                                {{ form.bus }}
-                                {% if form.bus.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {{ form.bus.errors|first }}
-                                    </div>
-                                {% endif %}
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.conductor.id_for_label }}" class="form-label">
-                                    <i class="fas fa-user me-2"></i>Conductor <span class="text-danger">*</span>
-                                </label>
-                                {{ form.conductor }}
-                                {% if form.conductor.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {{ form.conductor.errors|first }}
-                                    </div>
-                                {% endif %}
-                            </div>
+            <div class="card-body">
+                <form method="post" class="needs-validation">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger" role="alert">
+                            <strong>Errores en el formulario:</strong>
+                            <ul class="mb-0">
+                                {% for error in form.non_field_errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
                         </div>
+                    {% endif %}
 
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.lugar_origen.id_for_label }}" class="form-label">
-                                    <i class="fas fa-map-marker-alt me-2"></i>Lugar de Origen <span class="text-danger">*</span>
-                                </label>
-                                {{ form.lugar_origen }}
-                                {% if form.lugar_origen.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {{ form.lugar_origen.errors|first }}
-                                    </div>
-                                {% endif %}
-                            </div>
+                    <!-- SECCIÓN DATOS DEL VIAJE -->
+                    <h5 class="section-title mb-3">
+                        <i class="fas fa-info-circle me-2"></i>Datos del Viaje
+                    </h5>
 
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.lugar_destino.id_for_label }}" class="form-label">
-                                    <i class="fas fa-map-pin me-2"></i>Lugar de Destino <span class="text-danger">*</span>
-                                </label>
-                                {{ form.lugar_destino }}
-                                {% if form.lugar_destino.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {{ form.lugar_destino.errors|first }}
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.fecha_salida.id_for_label }}" class="form-label">
-                                    <i class="fas fa-clock me-2"></i>Fecha y Hora de Salida <span class="text-danger">*</span>
-                                </label>
-                                {{ form.fecha_salida }}
-                                {% if form.fecha_salida.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {{ form.fecha_salida.errors|first }}
-                                    </div>
-                                {% endif %}
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.fecha_llegada_estimada.id_for_label }}" class="form-label">
-                                    <i class="fas fa-hourglass-end me-2"></i>Fecha y Hora Est. de Llegada <span class="text-danger">*</span>
-                                </label>
-                                {{ form.fecha_llegada_estimada }}
-                                {% if form.fecha_llegada_estimada.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {{ form.fecha_llegada_estimada.errors|first }}
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.fecha_llegada_real.id_for_label }}" class="form-label">
-                                    <i class="fas fa-check-circle me-2"></i>Fecha y Hora Real de Llegada (Opcional)
-                                </label>
-                                {{ form.fecha_llegada_real }}
-                                {% if form.fecha_llegada_real.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {{ form.fecha_llegada_real.errors|first }}
-                                    </div>
-                                {% endif %}
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.estado.id_for_label }}" class="form-label">
-                                    <i class="fas fa-tasks me-2"></i>Estado <span class="text-danger">*</span>
-                                </label>
-                                {{ form.estado }}
-                                {% if form.estado.errors %}
-                                    <div class="text-danger small mt-1">
-                                        {{ form.estado.errors|first }}
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="{{ form.observaciones.id_for_label }}" class="form-label">
-                                <i class="fas fa-sticky-note me-2"></i>Observaciones (Opcional)
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.bus.id_for_label }}" class="form-label">
+                                <i class="fas fa-bus me-2"></i>Bus <span class="text-danger">*</span>
                             </label>
-                            {{ form.observaciones }}
-                            {% if form.observaciones.errors %}
+                            {{ form.bus }}
+                            {% if form.bus.errors %}
                                 <div class="text-danger small mt-1">
-                                    {{ form.observaciones.errors|first }}
+                                    {{ form.bus.errors|first }}
                                 </div>
                             {% endif %}
                         </div>
 
-                        <div class="d-flex gap-2 justify-content-between mt-4">
-                            <a href="{% url 'viajes:viaje_list' %}" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left me-2"></i>Cancelar
-                            </a>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save me-2"></i>{% if viaje %}Guardar Cambios{% else %}Crear Viaje{% endif %}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- CONTENIDO DE ITINERARIO (oculto por defecto) -->
-        <div id="itinerario-content" class="content-section" style="display: none;">
-            <div class="container-fluid">
-                <div class="row mb-4">
-                    <div class="col">
-                        <div class="header bg-primary text-white p-3 rounded">
-                            <h1 class="h3 mb-0">Gestión de Viaje (ID: {{ viaje.id }} | {{ viaje.lugar_origen }} → {{ viaje.lugar_destino }})</h1>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.conductor.id_for_label }}" class="form-label">
+                                <i class="fas fa-user me-2"></i>Conductor <span class="text-danger">*</span>
+                            </label>
+                            {{ form.conductor }}
+                            {% if form.conductor.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.conductor.errors|first }}
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
-                </div>
 
-                <div class="row">
-                    <!-- Columna Izquierda: Formulario -->
-                    <div class="col-md-6">
-                        <div class="card mb-4">
-                            <div class="card-header bg-light">
-                                <h2 class="h5 mb-0">Gestión y Costos</h2>
-                                <h3 class="h6 mb-0 text-muted">Itinerario / Paradas</h3>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.lugar_origen.id_for_label }}" class="form-label">
+                                <i class="fas fa-map-marker-alt me-2"></i>Lugar de Origen <span class="text-danger">*</span>
+                            </label>
+                            {{ form.lugar_origen }}
+                            {% if form.lugar_origen.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.lugar_origen.errors|first }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.lugar_destino.id_for_label }}" class="form-label">
+                                <i class="fas fa-map-pin me-2"></i>Lugar de Destino <span class="text-danger">*</span>
+                            </label>
+                            {{ form.lugar_destino }}
+                            {% if form.lugar_destino.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.lugar_destino.errors|first }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.fecha_salida.id_for_label }}" class="form-label">
+                                <i class="fas fa-clock me-2"></i>Fecha y Hora de Salida <span class="text-danger">*</span>
+                            </label>
+                            {{ form.fecha_salida }}
+                            {% if form.fecha_salida.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.fecha_salida.errors|first }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.fecha_llegada_estimada.id_for_label }}" class="form-label">
+                                <i class="fas fa-hourglass-end me-2"></i>Fecha y Hora Est. de Llegada <span class="text-danger">*</span>
+                            </label>
+                            {{ form.fecha_llegada_estimada }}
+                            {% if form.fecha_llegada_estimada.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.fecha_llegada_estimada.errors|first }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.fecha_llegada_real.id_for_label }}" class="form-label">
+                                <i class="fas fa-check-circle me-2"></i>Fecha y Hora Real de Llegada (Opcional)
+                            </label>
+                            {{ form.fecha_llegada_real }}
+                            {% if form.fecha_llegada_real.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.fecha_llegada_real.errors|first }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.estado.id_for_label }}" class="form-label">
+                                <i class="fas fa-tasks me-2"></i>Estado <span class="text-danger">*</span>
+                            </label>
+                            {{ form.estado }}
+                            {% if form.estado.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.estado.errors|first }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="{{ form.observaciones.id_for_label }}" class="form-label">
+                            <i class="fas fa-sticky-note me-2"></i>Observaciones (Opcional)
+                        </label>
+                        {{ form.observaciones }}
+                        {% if form.observaciones.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.observaciones.errors|first }}
                             </div>
-                            <div class="card-body">
-                                <!-- Formulario para añadir parada -->
-                                <div class="card">
-                                    <div class="card-header bg-info text-white">
-                                        <h4 class="h6 mb-0">+ Añadir Parada al Itinerario</h4>
-                                    </div>
-                                    <div class="card-body">
-                                        <form id="paradaForm">
-                                            <div class="mb-3">
-                                                <label for="lugar" class="form-label">Lugar (Parada)</label>
-                                                <select id="lugar" name="lugar" class="form-select">
-                                                    <option value="">Seleccione un lugar...</option>
-                                                    <option value="terminal_fruillar">Terminal Frutillar</option>
-                                                    <option value="cruce_pargua">Cruce Pargua (Ferry)</option>
-                                                    <option value="terminal_ancud">Terminal Ancud (Chiloé)</option>
-                                                    <option value="terminal_puerto_varas">Terminal Puerto Varas</option>
-                                                </select>
-                                            </div>
+                        {% endif %}
+                    </div>
 
-                                            <div class="mb-3">
-                                                <label for="hora_llegada" class="form-label">Hora de Llegada Estimada</label>
-                                                <input type="time" id="hora_llegada" name="hora_llegada" class="form-control">
-                                            </div>
+                    <!-- NUEVA SECCIÓN: COSTOS ESTIMADOS DEL VIAJE -->
+                    <hr class="my-4">
+                    <h5 class="section-title mb-3">
+                        <i class="fas fa-dollar-sign me-2"></i>Costos Estimados del Viaje
+                    </h5>
 
-                                            <div class="mb-3">
-                                                <label for="orden" class="form-label">Orden (1 = primera parada)</label>
-                                                <div class="d-flex align-items-center gap-2">
-                                                    <input type="number" id="orden" name="orden" min="1" value="1" class="form-control">
-                                                    <span class="text-muted">↑</span>
-                                                </div>
-                                            </div>
+                    <!-- Lista de Costos Ingresados (se llenará con JavaScript) -->
+                    <div class="mb-4">
+                        <h6 class="mb-3">Costos Registrados</h6>
+                        <div id="lista-costos" class="border rounded p-3 bg-light" style="min-height: 100px;">
+                            <div class="text-muted text-center py-3" id="mensaje-vacio">
+                                <i class="fas fa-receipt fa-2x mb-2"></i><br>
+                                No hay costos registrados aún
+                            </div>
+                            <!-- Aquí se agregarán los costos dinámicamente -->
+                        </div>
+                    </div>
 
-                                            <button type="button" class="btn btn-primary w-100" onclick="agregarParada()">
-                                                <i class="fas fa-plus me-2"></i>+ Añadir Parada
-                                            </button>
-                                        </form>
+                    <!-- Formulario para agregar costos -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-info text-white">
+                            <h6 class="mb-0"><i class="fas fa-plus me-2"></i>Agregar Costo Estimado</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Tipo de Costo</label>
+                                    <select class="form-select" id="tipo-costo">
+                                        <option value="combustible">Combustible</option>
+                                        <option value="mantenimiento">Mantenimiento</option>
+                                        <option value="peajes">Peajes</option>
+
+                                        <option value="otros">Otros Costos</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-5 mb-3">
+                                    <label class="form-label">Descripción</label>
+                                    <input type="text" class="form-control" id="descripcion-costo" placeholder="Ej: Combustible estimado ida y vuelta">
+                                </div>
+
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label">Monto Estimado</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="monto-costo" step="0.01" min="0" placeholder="0.00">
                                     </div>
                                 </div>
                             </div>
+
+                            <button type="button" class="btn btn-success w-100" onclick="agregarCosto()">
+                                <i class="fas fa-plus-circle me-2"></i>Agregar a la Lista
+                            </button>
                         </div>
                     </div>
 
-                    <!-- Columna Derecha: Itinerario -->
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header bg-success text-white">
-                                <h4 class="h6 mb-0">+ Itinerario Programado</h4>
+                    <!-- Campos ocultos para enviar los costos al servidor -->
+                    <div id="costos-ocultos">
+                        <!-- Se llenará con JavaScript -->
+                    </div>
+
+                    <!-- Resumen de Costos -->
+                    <div class="alert alert-info">
+                        <div class="row">
+                            <div class="col-6">
+                                <strong>Total Estimado:</strong>
                             </div>
-                            <div class="card-body">
-                                <ul class="list-unstyled" id="itinerarioList">
-                                    <li class="itinerario-item origen p-3 mb-2 rounded">
-                                        <strong>ORIGEN: {{ viaje.lugar_origen }}</strong>
-                                        <div class="time text-muted">Salida: {{ viaje.fecha_salida|time:"H:i A" }}</div>
-                                    </li>
-                                   
-                                    <li class="itinerario-item parada p-3 mb-2 rounded">
-                                        <span class="badge bg-dark me-2">1</span>
-                                        <strong>Parada 1: Terminal Frutillar</strong>
-                                        <div class="time text-muted">Llegada: 11:15 AM</div>
-                                    </li>
-                                   
-                                    <li class="itinerario-item parada p-3 mb-2 rounded">
-                                        <span class="badge bg-dark me-2">2</span>
-                                        <strong>Parada 2: Cruce Pargua (Ferry)</strong>
-                                        <div class="time text-muted">Llegada: 12:30 PM</div>
-                                    </li>
-                                   
-                                    <li class="itinerario-item destino p-3 mb-2 rounded">
-                                        <strong>DESTINO: {{ viaje.lugar_destino }}</strong>
-                                        <div class="time text-muted">Llegada: {{ viaje.fecha_llegada_estimada|time:"H:i A" }}</div>
-                                    </li>
-                                </ul>
+                            <div class="col-6 text-end">
+                                <strong id="total-costos">$0.00</strong>
                             </div>
                         </div>
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Los costos se pueden ajustar posteriormente en la gestión del viaje.
+                        </small>
                     </div>
-                </div>
 
-                <!-- Botón de volver -->
-                <div class="row mt-4">
-                    <div class="col">
-                        <button type="button" class="btn btn-secondary" onclick="cambiarPestana(document.getElementById('btnGestionCostos'), document.getElementById('gestion-content'))">
-                            <i class="fas fa-arrow-left me-2"></i>Volver a Gestión
+                    <div class="d-flex gap-2 justify-content-between mt-4">
+                        <a href="{% url 'viajes:viaje_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>{% if viaje %}Guardar Cambios{% else %}Crear Viaje{% endif %}
                         </button>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
     </div>
 </div>
 
 <style>
-.content-section {
-    transition: all 0.3s ease;
+.section-title {
+    font-weight: 600;
+    color: #2c3e50;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
 }
-.btn.active {
-    font-weight: bold;
+.costo-item {
+    background: white;
+    border-radius: 6px;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    border-left: 4px solid #2196F3;
 }
-.itinerario-item {
-    border-left: 4px solid #3498db;
-    background: #f8f9fa;
-}
-.itinerario-item.origen {
-    border-left-color: #27ae60;
-    background: #e8f5e8;
-}
-.itinerario-item.destino {
-    border-left-color: #e74c3c;
-    background: #fde8e6;
-}
-.itinerario-item.parada {
-    border-left-color: #3498db;
-    background: #e8f4fd;
+.costo-item.eliminado {
+    opacity: 0.6;
+    text-decoration: line-through;
+    border-left-color: #dc3545;
 }
 </style>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Botones de pestañas
-    const btnGestion = document.getElementById('btnGestionCostos');
-    const btnItinerario = document.getElementById('btnItinerario');
-    
-    // Contenidos
-    const contenidoGestion = document.getElementById('gestion-content');
-    const contenidoItinerario = document.getElementById('itinerario-content');
-    
-    if (btnGestion && btnItinerario) {
-        // Función para cambiar entre pestañas
-        window.cambiarPestana = function(botonActivo, contenidoActivo) {
-            // Remover active de todos los botones
-            btnGestion.classList.remove('active', 'btn-info');
-            btnItinerario.classList.remove('active', 'btn-success');
-            
-            // Ocultar todos los contenidos
-            contenidoGestion.style.display = 'none';
-            if (contenidoItinerario) contenidoItinerario.style.display = 'none';
-            
-            // Activar botón y contenido seleccionado
-            botonActivo.classList.add('active');
-            if (botonActivo === btnGestion) {
-                botonActivo.classList.add('btn-info');
-            } else {
-                botonActivo.classList.add('btn-success');
-            }
-            contenidoActivo.style.display = 'block';
-        }
-        
-        // Event listeners
-        btnGestion.addEventListener('click', function() {
-            cambiarPestana(btnGestion, contenidoGestion);
-        });
-        
-        if (btnItinerario && !btnItinerario.disabled) {
-            btnItinerario.addEventListener('click', function() {
-                cambiarPestana(btnItinerario, contenidoItinerario);
-            });
-        }
-    }
-});
+let costosRegistrados = [];
 
-function agregarParada() {
-    const lugarSelect = document.getElementById('lugar');
-    const horaInput = document.getElementById('hora_llegada');
-    const ordenInput = document.getElementById('orden');
-   
-    const lugar = lugarSelect.value;
-    const hora = horaInput.value;
-    const orden = ordenInput.value;
-   
-    if (!lugar || !hora || !orden) {
-        alert('Por favor, complete todos los campos');
+function agregarCosto() {
+    const tipo = document.getElementById('tipo-costo').value;
+    const descripcion = document.getElementById('descripcion-costo').value;
+    const monto = parseFloat(document.getElementById('monto-costo').value);
+
+    if (!descripcion || !monto || monto <= 0) {
+        alert('Por favor, complete la descripción y un monto válido');
         return;
     }
-   
-    // Aquí iría la lógica para agregar la parada al itinerario
-    // Por ahora solo mostramos un mensaje
-    alert(`Parada agregada:\nLugar: ${lugar}\nHora: ${hora}\nOrden: ${orden}`);
-   
+
+    const costo = {
+        id: Date.now(), // ID único
+        tipo: tipo,
+        descripcion: descripcion,
+        monto: monto
+    };
+
+    costosRegistrados.push(costo);
+    actualizarListaCostos();
+    actualizarCamposOcultos();
+    actualizarTotal();
+
     // Limpiar formulario
-    lugarSelect.value = '';
-    horaInput.value = '';
-    ordenInput.value = '1';
+    document.getElementById('descripcion-costo').value = '';
+    document.getElementById('monto-costo').value = '';
 }
 
-// Función para formatear hora (si necesitas convertir formato 24h a 12h)
-function formatearHora(hora24) {
-    const [horas, minutos] = hora24.split(':');
-    const hora = parseInt(horas);
-    const ampm = hora >= 12 ? 'PM' : 'AM';
-    const hora12 = hora % 12 || 12;
-    return `${hora12}:${minutos} ${ampm}`;
+function eliminarCosto(id) {
+    costosRegistrados = costosRegistrados.filter(costo => costo.id !== id);
+    actualizarListaCostos();
+    actualizarCamposOcultos();
+    actualizarTotal();
 }
+
+function actualizarListaCostos() {
+    const lista = document.getElementById('lista-costos');
+    
+    if (costosRegistrados.length === 0) {
+        lista.innerHTML = `
+            <div class="text-muted text-center py-3">
+                <i class="fas fa-receipt fa-2x mb-2"></i><br>
+                No hay costos registrados aún
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '';
+    costosRegistrados.forEach(costo => {
+        // Colores diferentes por tipo de costo
+        let colorBorde = '#2196F3'; // Azul por defecto
+        if (costo.tipo === 'combustible') colorBorde = '#ff9800'; // Naranja
+        if (costo.tipo === 'mantenimiento') colorBorde = '#4caf50'; // Verde
+        if (costo.tipo === 'peajes') colorBorde = '#ffc107'; // Amarillo
+        if (costo.tipo === 'otros') colorBorde = '#9c27b0'; // Morado
+        
+        html += `
+            <div class="costo-item" style="border-left-color: ${colorBorde}">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong class="text-capitalize">${costo.tipo}</strong>
+                        <div class="text-muted small">${costo.descripcion}</div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="fw-bold">$${costo.monto.toFixed(2)}</span>
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="eliminarCosto(${costo.id})">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    lista.innerHTML = html;
+}
+
+function actualizarCamposOcultos() {
+    const container = document.getElementById('costos-ocultos');
+    container.innerHTML = '';
+
+    costosRegistrados.forEach((costo, index) => {
+        container.innerHTML += `
+            <input type="hidden" name="costos[${index}][tipo]" value="${costo.tipo}">
+            <input type="hidden" name="costos[${index}][descripcion]" value="${costo.descripcion}">
+            <input type="hidden" name="costos[${index}][monto]" value="${costo.monto}">
+        `;
+    });
+}
+
+function actualizarTotal() {
+    const total = costosRegistrados.reduce((sum, costo) => sum + costo.monto, 0);
+    document.getElementById('total-costos').textContent = `$${total.toFixed(2)}`;
+}
+
+// Inicializar
+document.addEventListener('DOMContentLoaded', function() {
+    actualizarListaCostos();
+});
 </script>
 {% endblock %}

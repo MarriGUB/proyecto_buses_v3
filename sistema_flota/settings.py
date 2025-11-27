@@ -18,8 +18,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ============================================================
 
-
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
@@ -44,7 +42,7 @@ INSTALLED_APPS = [
     # Apps personalizadas
     'core.apps.CoreConfig',
     'flota.apps.FlotaConfig',
-    'viajes.apps.VialesConfig',
+    'viajes.apps.VialesConfig',  # ✅ CORREGIDO: Usa VialesConfig que ya existe
     'costos.apps.CostosConfig',
 ]
 

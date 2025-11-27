@@ -10,9 +10,52 @@ from django.db import transaction
 from .models import Viaje, ViajePasajero
 from core.models import Conductor, Lugar, Pasajero
 from flota.models import Bus
+from costos.models import CostosViaje, Peaje  # ✅ IMPORTAR MODELOS DE COSTOS
 
 
-class ViajeForm(ModelForm):
+class ViajeConCostosForm(ModelForm):
+    # Campos para costos (se procesarán manualmente)
+    combustible = forms.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        required=False,
+        initial=0,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': '0.00'
+        })
+    )
+    mantenimiento = forms.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        required=False,
+        initial=0,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': '0.00'
+        })
+    )
+    peajes = forms.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        required=False,
+        initial=0,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': '0.00'
+        })
+    )
+    otros_costos = forms.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        required=False,
+        initial=0,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': '0.00'
+        })
+    )
+
     class Meta:
         model = Viaje
         fields = [
@@ -44,7 +87,7 @@ class ViajeForm(ModelForm):
             'observaciones': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 3,
-                'placeholder': 'Observaciones adicionales (opcional)'
+                'placeholder': 'Observaciones adicionales'
             }),
         }
     
@@ -58,12 +101,21 @@ class ViajeForm(ModelForm):
         if instance.lugar_destino:
             instance.latitud_destino = instance.lugar_destino.latitud
             instance.longitud_destino = instance.lugar_destino.longitud
+        
         if commit:
             instance.save()
+            # Crear registro de costos asociado
+            CostosViaje.objects.create(
+                viaje=instance,
+                combustible=self.cleaned_data.get('combustible', 0),
+                mantenimiento=self.cleaned_data.get('mantenimiento', 0),
+                peajes=self.cleaned_data.get('peajes', 0),
+                otros_costos=self.cleaned_data.get('otros_costos', 0)
+            )
         return instance
 
 
-# Vistas para Viajes
+# Vistas para Viajes (ACTUALIZAR para usar el nuevo formulario)
 class ViajeListView(ListView):
     model = Viaje
     template_name = 'viajes/viaje_list.html'
@@ -82,21 +134,21 @@ class ViajeDetailView(DetailView):
 
 class ViajeCreateView(CreateView):
     model = Viaje
-    form_class = ViajeForm
+    form_class = ViajeConCostosForm  # ✅ CAMBIAR al nuevo formulario
     template_name = 'viajes/viaje_form.html'
     success_url = reverse_lazy('viajes:viaje_list')
 
     def form_valid(self, form):
         messages.success(
             self.request,
-            f'Viaje {form.instance.bus.placa} creado exitosamente.'
+            f'Viaje {form.instance.bus.placa} creado exitosamente con costos iniciales.'
         )
         return super().form_valid(form)
 
 
 class ViajeUpdateView(UpdateView):
     model = Viaje
-    form_class = ViajeForm
+    form_class = ViajeConCostosForm  # ✅ CAMBIAR al nuevo formulario
     template_name = 'viajes/viaje_form.html'
     success_url = reverse_lazy('viajes:viaje_list')
 
@@ -107,6 +159,8 @@ class ViajeUpdateView(UpdateView):
         )
         return super().form_valid(form)
 
+
+# ... (el resto de las vistas se mantienen igual, solo copia desde aquí hacia abajo)
 
 class ViajeDeleteView(DeleteView):
     model = Viaje
@@ -234,6 +288,67 @@ def editar_pasajero_viaje(request, pk, pasajero_pk):
     return render(request, 'viajes/editar_pasajero_viaje.html', context)
 
 
+# NUEVA VISTA PARA GESTIÓN DE VIAJE (Mockup 3)
+# NUEVA VISTA PARA GESTIÓN DE VIAJE (Mockup 3) - ACTUALIZADA CON FUNCIONALIDAD
+def gestion_viaje_view(request, pk):
+    """
+    Vista para la gestión completa del viaje (Mockup 3)
+    """
+    viaje = get_object_or_404(Viaje, pk=pk)
+    
+    # Obtener o crear costos del viaje
+    costos_viaje, created = CostosViaje.objects.get_or_create(viaje=viaje)
+    
+    if request.method == 'POST':
+        # Actualizar costos principales
+        if 'combustible' in request.POST:
+            costos_viaje.combustible = request.POST.get('combustible', 0) or 0
+            costos_viaje.mantenimiento = request.POST.get('mantenimiento', 0) or 0
+            costos_viaje.otros_costos = request.POST.get('otros_costos', 0) or 0
+            costos_viaje.save()
+            messages.success(request, 'Costos actualizados exitosamente.')
+        
+        # Agregar peaje
+        elif request.POST.get('accion') == 'agregar_peaje':
+            lugar = request.POST.get('lugar_peaje')
+            monto = request.POST.get('monto_peaje')
+            if lugar and monto:
+                Peaje.objects.create(
+                    viaje=viaje,
+                    lugar=lugar,
+                    monto=monto,
+                    fecha_pago=timezone.now()
+                )
+                # Actualizar total de peajes en costos
+                total_peajes = sum(peaje.monto for peaje in viaje.peajes.all())
+                costos_viaje.peajes = total_peajes
+                costos_viaje.save()
+                messages.success(request, f'Peaje en {lugar} agregado exitosamente.')
+        
+        # Eliminar peaje
+        elif request.POST.get('accion') == 'eliminar_peaje':
+            peaje_id = request.POST.get('peaje_id')
+            try:
+                peaje = Peaje.objects.get(id=peaje_id, viaje=viaje)
+                peaje.delete()
+                # Actualizar total de peajes en costos
+                total_peajes = sum(peaje.monto for peaje in viaje.peajes.all())
+                costos_viaje.peajes = total_peajes
+                costos_viaje.save()
+                messages.success(request, 'Peaje eliminado exitosamente.')
+            except Peaje.DoesNotExist:
+                messages.error(request, 'Peaje no encontrado.')
+        
+        return redirect('viajes:gestion_viaje', pk=pk)
+    
+    context = {
+        'viaje': viaje,
+        'costos_viaje': costos_viaje,
+        'titulo': f'Gestión de Viaje - {viaje.lugar_origen} -> {viaje.lugar_destino}'
+    }
+    return render(request, 'viajes/gestion_viaje.html', context)
+
+
 # NUEVA VISTA PARA ITINERARIO
 def itinerario_view(request, pk):
     """
@@ -246,55 +361,3 @@ def itinerario_view(request, pk):
         'titulo': f'Itinerario - Viaje {viaje.id}'
     }
     return render(request, 'viajes/itinerario.html', context)
-
-
-from costos.models import CostosViaje, Peaje
-from django.utils import timezone
-
-def gestion_costos_view(request, pk):
-    viaje = get_object_or_404(Viaje, pk=pk)
-
-    # Obtener o crear costos base
-    costos, created = CostosViaje.objects.get_or_create(
-        viaje=viaje,
-        defaults={
-            'combustible': 0,
-            'mantenimiento': 0,
-            'peajes': 0,
-            'otros_costos': 0,
-        }
-    )
-
-    # ACTUALIZAR COSTOS PRINCIPALES
-    if request.method == "POST" and "actualizar_costos" in request.POST:
-        costos.combustible = request.POST.get('combustible') or 0
-        costos.mantenimiento = request.POST.get('mantenimiento') or 0
-        costos.otros_costos = request.POST.get('otros_costos') or 0
-        costos.save()
-        return redirect('viajes:gestion_costos', pk=pk)
-
-    # AGREGAR PEAJE
-    if request.method == "POST" and "add_peaje" in request.POST:
-        nombre = request.POST.get("nombre_peaje")
-        monto = request.POST.get("monto_peaje")
-        if nombre and monto:
-            Peaje.objects.create(
-                viaje=viaje,
-                lugar=nombre,
-                monto=monto,
-                fecha_pago=timezone.now()
-            )
-        return redirect('viajes:gestion_costos', pk=pk)
-
-    # ELIMINAR PEAJE
-    if request.method == "POST" and "delete_peaje" in request.POST:
-        peaje_id = request.POST.get("peaje_id")
-        Peaje.objects.filter(id=peaje_id).delete()
-        return redirect('viajes:gestion_costos', pk=pk)
-
-    context = {
-        "viaje": viaje,
-        "costos": costos,
-        "peajes": viaje.peajes.all(),
-    }
-    return render(request, "viajes/gestion_costos.html", context)
