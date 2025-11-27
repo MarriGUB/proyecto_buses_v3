@@ -246,3 +246,55 @@ def itinerario_view(request, pk):
         'titulo': f'Itinerario - Viaje {viaje.id}'
     }
     return render(request, 'viajes/itinerario.html', context)
+
+
+from costos.models import CostosViaje, Peaje
+from django.utils import timezone
+
+def gestion_costos_view(request, pk):
+    viaje = get_object_or_404(Viaje, pk=pk)
+
+    # Obtener o crear costos base
+    costos, created = CostosViaje.objects.get_or_create(
+        viaje=viaje,
+        defaults={
+            'combustible': 0,
+            'mantenimiento': 0,
+            'peajes': 0,
+            'otros_costos': 0,
+        }
+    )
+
+    # ACTUALIZAR COSTOS PRINCIPALES
+    if request.method == "POST" and "actualizar_costos" in request.POST:
+        costos.combustible = request.POST.get('combustible') or 0
+        costos.mantenimiento = request.POST.get('mantenimiento') or 0
+        costos.otros_costos = request.POST.get('otros_costos') or 0
+        costos.save()
+        return redirect('viajes:gestion_costos', pk=pk)
+
+    # AGREGAR PEAJE
+    if request.method == "POST" and "add_peaje" in request.POST:
+        nombre = request.POST.get("nombre_peaje")
+        monto = request.POST.get("monto_peaje")
+        if nombre and monto:
+            Peaje.objects.create(
+                viaje=viaje,
+                lugar=nombre,
+                monto=monto,
+                fecha_pago=timezone.now()
+            )
+        return redirect('viajes:gestion_costos', pk=pk)
+
+    # ELIMINAR PEAJE
+    if request.method == "POST" and "delete_peaje" in request.POST:
+        peaje_id = request.POST.get("peaje_id")
+        Peaje.objects.filter(id=peaje_id).delete()
+        return redirect('viajes:gestion_costos', pk=pk)
+
+    context = {
+        "viaje": viaje,
+        "costos": costos,
+        "peajes": viaje.peajes.all(),
+    }
+    return render(request, "viajes/gestion_costos.html", context)

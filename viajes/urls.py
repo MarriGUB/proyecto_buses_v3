@@ -19,4 +19,7 @@ urlpatterns = [
     
     # NUEVA URL PARA ITINERARIO
     path('<int:pk>/itinerario/', views.itinerario_view, name='itinerario'),
+    
+    # Gestión de costos del viaje
+    path('<int:pk>/costos/', views.gestion_costos_view, name='gestion_costos'),
 ]
