@@ -10,52 +10,10 @@ from django.db import transaction
 from .models import Viaje, ViajePasajero
 from core.models import Conductor, Lugar, Pasajero
 from flota.models import Bus
-from costos.models import CostosViaje, Peaje  # ✅ IMPORTAR MODELOS DE COSTOS
+from costos.models import CostosViaje, Peaje
 
 
-class ViajeConCostosForm(ModelForm):
-    # Campos para costos (se procesarán manualmente)
-    combustible = forms.DecimalField(
-        max_digits=10, 
-        decimal_places=2, 
-        required=False,
-        initial=0,
-        widget=forms.NumberInput(attrs={
-            'class': 'form-control',
-            'placeholder': '0.00'
-        })
-    )
-    mantenimiento = forms.DecimalField(
-        max_digits=10, 
-        decimal_places=2, 
-        required=False,
-        initial=0,
-        widget=forms.NumberInput(attrs={
-            'class': 'form-control',
-            'placeholder': '0.00'
-        })
-    )
-    peajes = forms.DecimalField(
-        max_digits=10, 
-        decimal_places=2, 
-        required=False,
-        initial=0,
-        widget=forms.NumberInput(attrs={
-            'class': 'form-control',
-            'placeholder': '0.00'
-        })
-    )
-    otros_costos = forms.DecimalField(
-        max_digits=10, 
-        decimal_places=2, 
-        required=False,
-        initial=0,
-        widget=forms.NumberInput(attrs={
-            'class': 'form-control',
-            'placeholder': '0.00'
-        })
-    )
-
+class ViajeForm(ModelForm):
     class Meta:
         model = Viaje
         fields = [
@@ -87,7 +45,7 @@ class ViajeConCostosForm(ModelForm):
             'observaciones': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 3,
-                'placeholder': 'Observaciones adicionales'
+                'placeholder': 'Observaciones adicionales (opcional)'
             }),
         }
     
@@ -101,21 +59,12 @@ class ViajeConCostosForm(ModelForm):
         if instance.lugar_destino:
             instance.latitud_destino = instance.lugar_destino.latitud
             instance.longitud_destino = instance.lugar_destino.longitud
-        
         if commit:
             instance.save()
-            # Crear registro de costos asociado
-            CostosViaje.objects.create(
-                viaje=instance,
-                combustible=self.cleaned_data.get('combustible', 0),
-                mantenimiento=self.cleaned_data.get('mantenimiento', 0),
-                peajes=self.cleaned_data.get('peajes', 0),
-                otros_costos=self.cleaned_data.get('otros_costos', 0)
-            )
         return instance
 
 
-# Vistas para Viajes (ACTUALIZAR para usar el nuevo formulario)
+# Vistas para Viajes
 class ViajeListView(ListView):
     model = Viaje
     template_name = 'viajes/viaje_list.html'
@@ -134,33 +83,57 @@ class ViajeDetailView(DetailView):
 
 class ViajeCreateView(CreateView):
     model = Viaje
-    form_class = ViajeConCostosForm  # ✅ CAMBIAR al nuevo formulario
+    form_class = ViajeForm
     template_name = 'viajes/viaje_form.html'
     success_url = reverse_lazy('viajes:viaje_list')
 
     def form_valid(self, form):
         messages.success(
             self.request,
-            f'Viaje {form.instance.bus.placa} creado exitosamente con costos iniciales.'
+            f'Viaje {form.instance.bus.placa} creado exitosamente.'
         )
         return super().form_valid(form)
 
 
 class ViajeUpdateView(UpdateView):
     model = Viaje
-    form_class = ViajeConCostosForm  # ✅ CAMBIAR al nuevo formulario
+    form_class = ViajeForm
     template_name = 'viajes/viaje_form.html'
     success_url = reverse_lazy('viajes:viaje_list')
 
     def form_valid(self, form):
+        # Procesar costos dinámicos si existen en el POST
+        if 'costos' in self.request.POST:
+            try:
+                # Obtener o crear costos del viaje
+                costos_viaje, created = CostosViaje.objects.get_or_create(viaje=form.instance)
+                
+                # Procesar costos del formulario JavaScript
+                costos_data = self.request.POST.getlist('costos')
+                total_combustible = 0
+                total_mantenimiento = 0
+                total_peajes = 0
+                total_otros = 0
+                
+                for costo_str in costos_data:
+                    if costo_str:
+                        # Aquí procesarías los costos del formulario dinámico
+                        # Por ahora, como ejemplo, sumamos todo a "otros_costos"
+                        total_otros += float(costo_str) if costo_str else 0
+                
+                # Actualizar costos (esto es temporal - Barbara debe definir la lógica)
+                costos_viaje.otros_costos = total_otros
+                costos_viaje.save()
+                
+            except Exception as e:
+                messages.warning(self.request, f'Error al procesar costos: {str(e)}')
+        
         messages.success(
             self.request,
             f'Viaje {form.instance.bus.placa} actualizado exitosamente.'
         )
         return super().form_valid(form)
 
-
-# ... (el resto de las vistas se mantienen igual, solo copia desde aquí hacia abajo)
 
 class ViajeDeleteView(DeleteView):
     model = Viaje
@@ -289,7 +262,6 @@ def editar_pasajero_viaje(request, pk, pasajero_pk):
 
 
 # NUEVA VISTA PARA GESTIÓN DE VIAJE (Mockup 3)
-# NUEVA VISTA PARA GESTIÓN DE VIAJE (Mockup 3) - ACTUALIZADA CON FUNCIONALIDAD
 def gestion_viaje_view(request, pk):
     """
     Vista para la gestión completa del viaje (Mockup 3)

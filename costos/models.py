@@ -7,11 +7,11 @@ class CostosViaje(models.Model):
     Modelo para registrar y calcular costos de cada viaje.
     """
     viaje = models.OneToOneField(Viaje, on_delete=models.CASCADE, related_name='costos')
-    combustible = models.DecimalField(max_digits=10, decimal_places=2)
-    mantenimiento = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    peajes = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    otros_costos = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    costo_total = models.DecimalField(max_digits=10, decimal_places=2, editable=False)
+    combustible = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, default=0)
+    mantenimiento = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, default=0)
+    peajes = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, default=0)
+    otros_costos = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, default=0)
+    costo_total = models.DecimalField(max_digits=10, decimal_places=2, editable=False, default=0)
     ganancia_neta = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     observaciones = models.TextField(blank=True)
     creado_en = models.DateTimeField(auto_now_add=True)
@@ -22,7 +22,13 @@ class CostosViaje(models.Model):
         verbose_name_plural = 'Costos Viajes'
 
     def save(self, *args, **kwargs):
-        self.costo_total = self.combustible + self.mantenimiento + self.peajes + self.otros_costos
+        # Convertir None a 0 antes de sumar
+        combustible = self.combustible or 0
+        mantenimiento = self.mantenimiento or 0
+        peajes = self.peajes or 0
+        otros_costos = self.otros_costos or 0
+        
+        self.costo_total = combustible + mantenimiento + peajes + otros_costos
         super().save(*args, **kwargs)
 
     def __str__(self):
